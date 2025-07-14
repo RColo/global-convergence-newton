@@ -29,11 +29,11 @@
 \author{
   Raffael Colonnello\\
   University of Basel\\
-  \texttt{Raffael.Colonnello@unibas.ch} \\
+  \texttt{raffael.colonnello@unibas.ch} \\
   \And
   Fynn Gohlke\\
   University of Basel\\
-  \texttt{Fynn.Gohlke@stud.unibas.ch} \\
+  \texttt{fynn.tohlke@stud.unibas.ch} \\
   \AND
   Benedikt Heuser\\
   University of Basel\\
@@ -54,21 +54,21 @@
 \end{abstract}
 
 \section{Introduction}
-In this paper we consider problems of the
+In this paper we consider problems of the form
 
 \begin{equation}
   \min_{x \in \mathbb{R}^d} f(\mathbf{x})
 \end{equation}
 
-where $f: \mathbb{R}^d \rightarrow \mathbb{R}$ is a twice-differentiable function. First-order optimization methods are widely used for such problems due to their low per-iteration computational cost and their suitability for parallelization they often suffer from slow convergence for ill-conditioned objective functions \cite{wright}.
+where $f: \mathbb{R}^d \rightarrow \mathbb{R}$ is a twice-differentiable function. First-order optimization methods are widely used for such problems due to their low per-iteration computational cost and their suitability for parallelization. They often suffer from slow convergence for ill-conditioned objective functions \cite{wright}.
 Newton's method is a popular optimization algorithm that is commonly used to solve optimization
 problems. It is a second-order optimization algorithm since it uses second-order information of the
 objective function. Newton's method is known to have fast local convergence guarantees for convex
 functions. However, the global convergence properties of Newton's method are still an active area of
-research \cite{mishchenko2023regularized} \cite{hanzely2022damped}. In contrast to first-order methods such as gradient descent, second-order methods such as Newton's method can achieve much faster convergence when presented with ill conditioned Hessians by transferring the problem into a more isotropic optimization problem at the cost of an increase to cubic run time. Newton's method yields local quadratic convergence if $f$ is twice differentiable (or we have suitable regularity conditions), which degrades to sublinear convergence outside of the local regions.
+research \cite{mishchenko2023regularized} \cite{hanzely2022damped}. In contrast to first-order methods, such as gradient descent, second-order methods, such as Newton's method, can achieve much faster convergence when presented with ill conditioned Hessians by transferring the problem into a more isotropic optimization problem at the cost of an increase to cubic run time. Newton's method yields local quadratic convergence if $f$ is twice differentiable (or we have suitable regularity conditions), which degrades to sublinear convergence outside of the local regions.
 
 In this paper, we explore the theoretical foundations of several Newton-type methods that achieve different global convergence guarantees, compare their performance in a classification-type problem for two loss functions on four different datasets.
-Finally we will propose two modifications of the algorithms to achieve an increase in runtime, by either coupling the Newton-type method with a conjugate gradient method for Hessian vector multiplication or Strassen's algorithm for fast matrix inversion.
+Finally we will propose two modifications of the algorithms to achieve an decrease in runtime, by either coupling the Newton-type method with a conjugate gradient method for Hessian vector multiplication or Strassen's algorithm for fast matrix inversion.
 \section{Background}
 \subsection{Loss function and Datasets}
 Let 
@@ -102,7 +102,7 @@ The corresponding gradients of $L_i$ are
 Differentiating again yields the Hessians
 \begin{align}
 \nabla^2 L_1(\omega) &= \frac{1}{n} X^\top D X\\
-\nabla^2 L_2(\omega) &= \frac{1}{n} X^\top D X + \nabla^2 r(\omega), \nabla^2, \quad
+\nabla^2 L_2(\omega) &= \frac{1}{n} X^\top D X + \nabla^2 r(\omega),\quad \nabla^2 
 r(\omega) = \operatorname{diag}\Big(\lambda \frac{2\alpha (1 - 3\alpha \omega_j^2)}{(1 + \alpha \omega_j^2)^3}\Big)
 \end{align}
 where the diagonal matrix $D$ has entries
@@ -280,9 +280,9 @@ Since $H_{1,2} = \nabla ^2 L_{1,2}$ are clearly symmetric (as both $X^\top D X$ 
 if the H is positive definite or have to fall back on MINRES if it is not pd. Positive definiteness depends on the data matrix and the regularizer curvature.
 [TODO: runtime for MINRES and CG]\\
 Every iteration of Vanilla Newton takes O($n^3$) per iteration because inversion of the Hessian costs O($n^3$).\\
-for symmetric applying CG to newton drops the effort for conversion down to 
-$$O(k\cdot n^2) = O(\sqrt{\kappa}\log \left( 1/\epsilon\right) \cdot n^2)$$ where $\kappa(H) = \frac{\lambda_{max}(H)}{\lambda_{max}(H)}$\\
-Precondition with SSOR to reduce condition number.
+for symmetric problems, applying CG to newton drops the effort for conversion down to 
+$$O(k\cdot n^2) = O(\sqrt{\kappa}\log \left( 1/\epsilon\right) \cdot n^2)$$ where $\kappa(H) = \frac{\lambda_{max}(H)}{\lambda_{min}(H)}$\\
+SSOR can precondition H to reduce the condition number.
 \bibliographystyle{unsrt}
 \bibliography{refs}
 
