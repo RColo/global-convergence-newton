@@ -37,7 +37,7 @@
   \AND
   Benedikt Heuser\\
   University of Basel\\
-  \texttt{ben.heuser@unibas.ch} \\
+  \texttt{Ben.Heuser@unibas.ch} \\
 }
 
 \begin{document}
@@ -65,10 +65,10 @@ Newton's method is a popular optimization algorithm that is commonly used to sol
 problems. It is a second-order optimization algorithm since it uses second-order information of the
 objective function. Newton's method is known to have fast local convergence guarantees for convex
 functions. However, the global convergence properties of Newton's method are still an active area of
-research \cite{mishchenko2023regularized} \cite{hanzely2022damped}. In contrast to first-order methods like gradient descent, second-order methods, such as Newton's method can achieve much faster convergence when presented with ill conditioned Hessians by transferring the problem into a more isotropic optimization problem at the cost of an increase to cubic run time. Newton's method yields local quadratic convergence if $f$ is twice differentiable (or we have suitable regularity conditions), which degrade outside of the local regions, yielding up to sublinear global convergence guarantees, depending on the alogithm.
+research \cite{mishchenko2023regularized} \cite{hanzely2022damped}. In contrast to first-order methods like gradient descent, second-order methods, such as Newton's method, can achieve much faster convergence when presented with ill conditioned Hessians by transferring the problem into a more isotropic optimization problem at the cost of an increase to cubic run time. Newton's method yields local quadratic convergence if $f$ is twice differentiable (or we have suitable regularity conditions), which degrade outside of the local regions, yielding up to sublinear global convergence guarantees, depending on the alogithm.
 
 In this paper, we explore the theoretical foundations of several Newton-type methods that achieve different global convergence guarantees, compare their performance in a classification-type problem for two loss functions on four different datasets.
-Finally we will propose two modifications of the algorithms to achieve an increase in runtime, by either coupling the Newton-type method with a conjugate gradient method for Hessian vector multiplication or Strassen's algorithm for fast matrix inversion.
+Finally we will propose two modifications of the algorithms to achieve a decrease in runtime, by either coupling the Newton-type method with a conjugate gradient method for Hessian vector multiplication or Strassen's algorithm for fast matrix inversion.
 \section{Background}
 \subsection{Loss function and Datasets}
 Let 
@@ -151,7 +151,7 @@ The Levenberg-Marquardt's algorithm [REFERENCE] is an early form of regularized 
 
 \subsection{Regularized Newton}
 
-In their 2023 article Michenko presents a variation of Newton's method that uses the update rule \cite{mishchenko2023regularized}:
+In his 2023 article Mishchenko presents a variation of Newton's method that uses the update rule \cite{mishchenko2023regularized}:
 
 \begin{equation}
 \mathbf{x}_{k+1} = \mathbf{x}_{k} - ( \nabla^2 f(\mathbf{x}_k) + \sqrt{ H ||\nabla f(\mathbf{x}_k)||\mathbf{I}})^{-1} \nabla f(\mathbf{x}_k)
@@ -159,6 +159,48 @@ In their 2023 article Michenko presents a variation of Newton's method that uses
 \end{equation}
 
 where $H > 0$ is a constant. The convergence rate of this algorithm is $\mathcal{O}(\frac{1}{k^2})$. This method uses an adaptive variant of the Levenberg-Marquardt regularization. 
+
+He the proposes several algorithms, which use the following constants:
+\begin{itemize}
+    \item \(x_i\in \mathbb{R}^d\), the estimate in the i-th iteration 
+    \item \(H>0\), a constant, which has to be chosen s.t. the Hessian is 2H-Lipschitz.
+    \item \(I_d\), the Identity matrix.
+    \item \(\lambda_i\), regularizer of i-th iteration
+    \item \(H_i\), an estimate of H.
+    \item \(n_k\),iteration counter
+    \item \(M_k<H_k, M_k<H\), a local estimate on the smoothness of the Hessian
+\end{itemize}
+\subsubsection{Globally convergent regularized Newton method for minimization}
+given \(x_0,H\),\\
+for\(\quad k\in \mathbb{N}_0\{\)\\
+\(\lambda_k=\sqrt{H||\nabla f(x_k)||}\)\\
+\(x_{k+1}=x_k-(\nabla^2 f(x_k)+\lambda_k I_d)^{-1}\nabla f(x_k); \)\qquad Compute \(x_{k+1}\) by solving a linear system.\\
+\(\}\)
+
+\subsubsection{Adaptive Newton AdaN}
+
+given \(x_0,H_0>0\),\\
+for\(\quad k\in \mathbb{N}_0\{\)\\
+Initialize line search with reduced regularization \(H_k=\frac{H_{k-1}}{4}\)\quad for\quad \(k>0\)\(,n_k=0\)\\
+do\(\{\)\\
+\(H_k*=2;\)\quad Increase Regularization\\
+\(n_k++\)\\
+\(\lambda_k=\sqrt{H_k||\nabla f(x_k)||}\)\\
+\(x_+=x_k-(\nabla^2 f(x_k)+\lambda_kI)^{-1}\nabla f(x_k); \)\quad New trial point\\
+\(r_+=||x_+-x_k||\)\\
+\(\}\)\quad while \(||\nabla f(x_+)||>2\lambda_kr_+\)\quad or \(f(x_+)>f(x_k)-\frac{2\lambda_kr_+^2}{3}\)\\
+\(x_{k+1}=x_+;\)\quad Select trial point\\
+\(\}\)
+
+\subsubsection{Heuristic modification of AdaN}
+given \(x_0 \neq x_1\)
+Initialize \(H_0=\frac{||\nabla f(x_1)-\nabla f(x_0)-\nabla^2f(x_0)(x_1-x0)||}{||x_1-x_0||^2}\)\\
+for \(k\in \mathbb{N}^+\)\{\\
+\(M_k=\frac{||\nabla f(x_k)-\nabla f(x_{k-1})-\nabla^2f(x_{k-1})(x_k-x_{k-1})||}{||x_k-x_{k-1}||^2}\)\\
+\(H_k=max\{M_k,\frac{H_{k-1}}{2}\}\)\\
+\(\lambda_k=\sqrt{H_k||\nabla f(x_k)||}\)\\
+\(x_{k+1}=x_k-(\nabla^2 f(x_k)+\lambda_k I_d)^{-1}\nabla f(x_k)\)
+\(\}\)
 
 \subsection{Appendix}
 Remark 2:
@@ -325,9 +367,9 @@ Since $H_{1,2} = \nabla ^2 L_{1,2}$ are clearly symmetric (as both $X^\top D X$ 
 if the H is positive definite or have to fall back on MINRES if it is not pd. Positive definiteness depends on the data matrix and the regularizer curvature.
 [TODO: runtime for MINRES and CG]\\
 Every iteration of Vanilla Newton takes O($n^3$) per iteration because inversion of the Hessian costs O($n^3$).\\
-for symmetric applying CG to newton drops the effort for conversion down to 
-$$O(k\cdot n^2) = O(\sqrt{\kappa}\log \left( 1/\epsilon\right) \cdot n^2)$$ where $\kappa(H) = \frac{\lambda_{max}(H)}{\lambda_{max}(H)}$\\
-Precondition with SSOR to reduce condition number.
+In symmetric cases, applying CG to newton drops the effort for conversion down to 
+$$O(k\cdot n^2) = O(\sqrt{\kappa}\log \left( 1/\epsilon\right) \cdot n^2)$$ where $\kappa(H) = \frac{\lambda_{max}(H)}{\lambda_{min}(H)}$\\
+Preconditioning with SSOR can reduce condition number.
 \bibliographystyle{unsrt}
 \bibliography{refs}
 
